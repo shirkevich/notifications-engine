@@ -123,12 +123,13 @@ func (s webhookService) Send(notification Notification, dest Destination) error 
 	if err != nil {
 		return err
 	}
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		data = []byte(fmt.Sprintf("unable to read response data: %v", err))
+	}
 
+	log.Debugf("Webhook event.  StatusCode: %d, Body: %s", resp.StatusCode, string(data))
 	if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
-		data, err := io.ReadAll(resp.Body)
-		if err != nil {
-			data = []byte(fmt.Sprintf("unable to read response data: %v", err))
-		}
 		return fmt.Errorf("request to %s has failed with error code %d : %s", request, resp.StatusCode, string(data))
 	}
 	return nil
